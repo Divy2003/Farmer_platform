@@ -1,0 +1,31 @@
+# Django
+*.sqlite3
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Static files
+/staticfiles/
+/media/
