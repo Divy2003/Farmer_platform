@@ -25,8 +25,8 @@ from django.utils import timezone
 
 # Replace GUJARAT_DISTRICTS with COMMON_COMMODITIES
 COMMON_COMMODITIES = [
-    "Cabbage", "Cauliflower", "Bhindi(Ladies Finger)", "Green Chilli", 
-    "Brinjal", "Cotton", "Tomato", "Ginger(Green)", "Guar", 
+    "Cabbage", "Cauliflower", "Bhindi(Ladies Finger)", "Green Chilli",
+    "Brinjal", "Cotton", "Tomato", "Ginger(Green)", "Guar",
     "Coriander(Leaves)", "Potato", "Onion", "Wheat", "Paddy(Dhan)(Common)",
     "Banana", "Amaranthus", "Colacasia", "Ashgourd", "Beetroot"
 ]
@@ -34,56 +34,56 @@ COMMON_COMMODITIES = [
 def get_market_prices(state=None, commodity=None):
     api_key = "579b464db66ec23bdd00000107385f0af1c74e134d572fd205eb9502"
     url = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"
-    
+
     # Default limit is 10, but increase to 100 if state is selected
     limit = 100 if state else 10
-    
+
     params = {
         'api-key': api_key,
         'format': 'json',
         'limit': limit,
         'offset': 0
     }
-    
+
     if state:
         formatted_state = state.title()
         params['filters[state]'] = formatted_state
         print(f"Fetching data for state: {formatted_state}")
-    
+
     if commodity:
         params['filters[commodity]'] = commodity.title()
         print(f"Filtering by commodity: {commodity}")
-    
+
     try:
         all_records = [] #it collect record in every loop
         total_records = None #it store the total number of records, and it is constant value
-        current_offset = 0  
-        
+        current_offset = 0
+
         while state:
             params['offset'] = current_offset
             print(f"Fetching records with offset: {current_offset}")
-            
+
             response = requests.get(
-                url, 
+                url,
                 params=params,
                 timeout=(5, 15),
                 verify=False
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 current_records = data.get('records', [])
-                
+
                 if not current_records:
                     break
-                    
+
                 all_records.extend(current_records)
-                
+
                 if total_records is None:
                     total_records = data.get('total', 0)
-                
+
                 current_offset += limit
-                
+
                 # Break if we've fetched all records
                 if current_offset >= total_records:
                     break
@@ -93,33 +93,33 @@ def get_market_prices(state=None, commodity=None):
         else:
             # Single request for default case (no state selected)
             response = requests.get(
-                url, 
+                url,
                 params=params,
                 timeout=(5, 15),
                 verify=False
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 all_records = data.get('records', [])
                 total_records = data.get('total', 0)
-            
+
         if all_records:
-            
+
             sorted_records = sorted(
-                all_records, 
+                all_records,
                 key=lambda x: int(x['modal_price']) if x.get('modal_price') and x['modal_price'].isdigit() else 0
             )
-            
+
             return {
                 'records': sorted_records,
                 'total': total_records,
                 'updated_date': data.get('updated_date')
             }
-        
+
     except Exception as e:
         print(f"Error fetching market prices: {e}")
-    
+
     return None
 
 # List of Indian states
@@ -134,12 +134,12 @@ INDIAN_STATES = [
 def index(request):
     # Get selected location from query parameters
     selected_location = request.GET.get('location', '').strip()
-    
+
     # Base queryset for UserProfile with is_farmer=True
     farmer_profiles = UserProfile.objects.filter(is_farmer=True)
     products_query = Product.objects.select_related('farmer__user_profile')
     requests_query = ProductRequest.objects.all()
-    
+
     # Apply location filter if selected
     if selected_location:
         # Search in farm_location, city, and address fields
@@ -156,7 +156,7 @@ def index(request):
         requests_query = requests_query.filter(
             Q(district__icontains=selected_location)
         )
-    
+
     # Get top regions by product availability
     top_regions = (
         products_query
@@ -226,8 +226,8 @@ def index(request):
         'news_items': news_items,
     }
     return render(request, 'index.html', context)
-    
-    
+
+
 
 def user_signup(request):
     if request.method == 'POST':
@@ -275,16 +275,16 @@ def farmer_signup(request):
 @login_required
 def home(request):
     farmers = FarmerProfile.objects.all()
-    
+
     # Don't show the current farmer in the list if user is a farmer
     if request.user.userprofile.is_farmer:
         farmers = farmers.exclude(user_profile=request.user.userprofile)
-    
+
     # Get location parameters
     user_lat = request.GET.get('lat')
     user_lng = request.GET.get('lng')
     radius = request.GET.get('radius')
-    
+
     # If location parameters are provided, filter by distance
     if all([user_lat, user_lng, radius]):
         try:
@@ -302,12 +302,12 @@ def home(request):
                 else:
                     farmer.has_distance = False
             farmers = sorted(nearby_farmers, key=lambda x: x.distance)
-            
+
             if not farmers:
                 messages.info(request, f"No farms found within {radius} km of your location.")
         except Exception as e:
             messages.error(request, "Error calculating distances. Please try again.")
-    
+
     return render(request, 'home.html', {
         'farmers': farmers,
         'user_lat': user_lat,
@@ -325,10 +325,10 @@ def farmer_profile(request, farmer_id):
             farmer=farmer,
             user=request.user.userprofile
         ).first()
-    
+
     # Get ratings with their replies
     ratings = Rating.objects.filter(farmer=farmer).prefetch_related('replies').order_by('-created_at')
-    
+
     return render(request, 'farmer_profile.html', {
         'farmer': farmer,
         'products': products,
@@ -341,13 +341,13 @@ def farmer_dashboard(request):
     if not request.user.userprofile.is_farmer:
         messages.error(request, "Access denied. Farmer account required.")
         return redirect('home')
-    
+
     farmer = request.user.userprofile.farmerprofile
     # Get all interests for this farmer's products, ordered by product and date
     interests = Interest.objects.filter(
         product__farmer=farmer
     ).select_related(
-        'product', 
+        'product',
         'user__user'
     ).order_by('product', '-created_at')
 
@@ -362,7 +362,7 @@ def farmer_dashboard(request):
 def update_profile(request):
     if not request.user.userprofile.is_farmer:
         return redirect('home')
-    
+
     farmer = request.user.userprofile.farmerprofile
     if request.method == 'POST':
         farmer.farm_name = request.POST.get('farm_name')
@@ -370,10 +370,10 @@ def update_profile(request):
         farmer.farm_location = request.POST.get('farm_location')
         farmer.latitude = request.POST.get('latitude')
         farmer.longitude = request.POST.get('longitude')
-        
+
         if request.FILES.get('farm_image'):
             farmer.farm_image = request.FILES['farm_image']
-        
+
         farmer.save()
         messages.success(request, 'Profile updated successfully!')
     return redirect('farmer_dashboard')
@@ -382,7 +382,7 @@ def update_profile(request):
 def add_product(request):
     if not request.user.userprofile.is_farmer:
         return redirect('home')
-    
+
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
@@ -398,7 +398,7 @@ def edit_product(request, product_id):
     if product.farmer.user_profile.user != request.user:
         messages.error(request, "You can only edit your own products.")
         return redirect('farmer_dashboard')
-    
+
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES, instance=product)
         if form.is_valid():
@@ -414,7 +414,7 @@ def delete_product(request, product_id):
     if product.farmer.user_profile.user != request.user:
         messages.error(request, "You can only delete your own products.")
         return redirect('farmer_dashboard')
-    
+
     if request.method == 'POST':
         product.delete()
         messages.success(request, 'Product deleted successfully!')
@@ -431,7 +431,7 @@ def generate_request(request):
 
         if product_name and quantity and district:
             ProductRequest.objects.create(user=request.user, product_name=product_name, message=message, quantity=quantity, district=district)
-        
+
         return redirect('user_profile')  # Redirect back to the profile page
 
     return render(request, 'user_profile.html')
@@ -468,7 +468,7 @@ def show_interest(request, product_id):
     if request.user.userprofile.is_farmer:
         messages.error(request, "Farmers cannot show interest in products.")
         return redirect('home')
-    
+
     product = get_object_or_404(Product, id=product_id)
     if request.method == 'POST':
         Interest.objects.create(
@@ -488,7 +488,7 @@ def logout_view(request):
 def user_profile(request):
     if request.user.userprofile.is_farmer:
         return redirect('farmer_dashboard')
-    
+
     interests = Interest.objects.filter(user=request.user.userprofile).order_by('-created_at')
     return render(request, 'user_profile.html', {
         'interests': interests
@@ -499,18 +499,18 @@ def update_user_profile(request):
     if request.method == 'POST':
         user = request.user
         profile = user.userprofile
-        
+
         user.email = request.POST.get('email')
         profile.phone = request.POST.get('phone')
         profile.city = request.POST.get('city')
         profile.address = request.POST.get('address')
-        
+
         user.save()
         profile.save()
-        
+
         messages.success(request, 'Profile updated successfully!')
         return redirect('user_profile')
-    
+
     return redirect('user_profile')
 
 @login_required
@@ -546,17 +546,17 @@ def send_sms_to_interested(request, product_id):
         product = get_object_or_404(Product, id=product_id)
         if product.farmer.user_profile.user != request.user:
             return JsonResponse({'success': False, 'error': 'Permission denied'})
-        
+
         interests = Interest.objects.filter(product=product)
-        
+
         # Collect phone numbers
         phone_numbers = [interest.user.phone for interest in interests]
-        
+
         # Here you would integrate with your SMS service
         # For example, using Twilio:
         # from twilio.rest import Client
         # client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        
+
         # for interest in interests:
         #     phone = interest.user.phone
         #     # Send SMS logic here
@@ -565,9 +565,9 @@ def send_sms_to_interested(request, product_id):
         #         from_=settings.TWILIO_PHONE_NUMBER,
         #         to=phone
         #     )
-        
+
         return JsonResponse({'success': True, 'phoneNumbers': phone_numbers})
-    
+
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @login_required
@@ -575,16 +575,16 @@ def search(request):
     query = request.GET.get('q', '')
     search_type = request.GET.get('type', 'all')
     region = request.GET.get('region', '')  # New parameter for region filtering
-    
+
     results = {'farms': [], 'products': []}
-    
+
     if search_type in ['all', 'farms']:
         farms_query = FarmerProfile.objects.select_related('user_profile').all()
-        
+
         # Apply region filter if specified
         if region:
             farms_query = farms_query.filter(user_profile__city__iexact=region)
-        
+
         # Apply search query if specified
         if query:
             farms_query = farms_query.filter(
@@ -592,16 +592,16 @@ def search(request):
                 Q(farm_description__icontains=query) |
                 Q(farm_location__icontains=query)
             )
-        
+
         results['farms'] = farms_query
-    
+
     if search_type in ['all', 'products']:
         products_query = Product.objects.select_related('farmer__user_profile').all()
-        
+
         # Apply region filter if specified
         if region:
             products_query = products_query.filter(farmer__user_profile__city__iexact=region)
-        
+
         # Apply search query if specified
         if query:
             products_query = products_query.filter(
@@ -609,12 +609,12 @@ def search(request):
                 Q(description__icontains=query) |
                 Q(farmer__farm_name__icontains=query)
             )
-        
+
         results['products'] = products_query
-    
+
     # Get unique regions for the filter dropdown
     regions = UserProfile.objects.filter(is_farmer=True).values_list('city', flat=True).distinct().order_by('city')
-    
+
     context = {
         'query': query,
         'search_type': search_type,
@@ -631,10 +631,10 @@ def rate_farmer(request, farmer_id):
         if request.user.userprofile.is_farmer:
             messages.error(request, "Farmers cannot rate other farmers.")
             return redirect('farmer_profile', farmer_id=farmer_id)
-        
+
         rating_value = request.POST.get('rating')
         comment = request.POST.get('comment', '')
-        
+
         if rating_value:
             rating, created = Rating.objects.update_or_create(
                 farmer=farmer,
@@ -644,7 +644,7 @@ def rate_farmer(request, farmer_id):
             messages.success(request, 'Rating submitted successfully!')
         else:
             messages.error(request, 'Please select a rating.')
-    
+
     return redirect('farmer_profile', farmer_id=farmer_id)
 
 @login_required
@@ -670,14 +670,14 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     R = 6371  # Earth's radius in kilometers
 
     lat1, lon1, lat2, lon2 = map(radians, [float(lat1), float(lon1), float(lat2), float(lon2)])
-    
+
     dlat = lat2 - lat1
     dlon = lon2 - lon1
-    
+
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
     c = 2 * atan2(sqrt(a), sqrt(1-a))
     distance = R * c
-    
+
     return distance
 
 @login_required
@@ -685,14 +685,14 @@ def nearby_farms(request):
     radius = float(request.GET.get('radius', 10))  # Default 10km radius
     user_lat = request.GET.get('lat')
     user_lng = request.GET.get('lng')
-    
+
     if not user_lat or not user_lng:
         messages.error(request, "Location access is required to find nearby farms.")
         return redirect('home')
-    
+
     # Get all farms
     farms = FarmerProfile.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
-    
+
     # Calculate distances and filter
     nearby_farms = []
     for farm in farms:
@@ -703,10 +703,10 @@ def nearby_farms(request):
         if distance <= radius:
             farm.distance = round(distance, 1)
             nearby_farms.append(farm)
-    
+
     # Sort by distance
     nearby_farms.sort(key=lambda x: x.distance)
-    
+
     return render(request, 'nearby_farms.html', {
         'farms': nearby_farms,
         'radius': radius,
@@ -714,34 +714,92 @@ def nearby_farms(request):
         'user_lng': user_lng
     })
 
+def get_historical_data(district=None, commodity=None):
+    """Get historical price data from CSV file"""
+    try:
+        csv_path = os.path.join('farmprj', 'data', 'mandibhav.csv')
+        df = pd.read_csv(csv_path)
+
+        # Apply filters if provided
+        if district:
+            df = df[df['District'] == district]
+
+        if commodity:
+            df = df[df['Commodity'] == commodity]
+
+        # Convert date string to datetime for proper sorting
+        df['Arrival_Date'] = pd.to_datetime(df['Arrival_Date'], format='%d/%m/%Y')
+
+        # Sort by date
+        df = df.sort_values('Arrival_Date')
+
+        # Convert back to string format for display
+        df['Arrival_Date'] = df['Arrival_Date'].dt.strftime('%d/%m/%Y')
+
+        # Convert DataFrame to list of dictionaries
+        records = df.to_dict('records')
+
+        # Group data by date for charting
+        chart_data = []
+        for record in records:
+            chart_data.append({
+                'date': record['Arrival_Date'],
+                'min_price': float(record['Min_Price']),
+                'max_price': float(record['Max_Price']),
+                'modal_price': float(record['Modal_Price'])
+            })
+
+        return {
+            'records': records,
+            'chart_data': json.dumps(chart_data)
+        }
+
+    except Exception as e:
+        print(f"Error loading historical data: {e}")
+        return None
+
 def market_prices(request):
     # API section parameters
     selected_state = request.GET.get('state')
     selected_commodity = request.GET.get('commodity')
     page = int(request.GET.get('page', 1))
     per_page = 10
-    
+
     # Prediction section parameters
     prediction_district = request.GET.get('prediction_district')
     prediction_commodity = request.GET.get('prediction_commodity')
-    
+
+    # Historical section parameters
+    historical_district = request.GET.get('historical_district')
+    historical_commodity = request.GET.get('historical_commodity')
+
+    # Tab selection parameter
+    active_tab = request.GET.get('active_tab', 'current')
+
     # Get market data for API section
     market_data = get_market_prices(selected_state, selected_commodity)
-    
+
     # Get price predictions if prediction parameters are provided
     price_predictions = None
     if prediction_district and prediction_commodity:
         price_predictions = predict_price(prediction_commodity, prediction_district)
-    
-    # Get districts from CSV file for prediction section
+
+    # Get historical data if parameters are provided
+    historical_data = None
+    if historical_district or historical_commodity:
+        historical_data = get_historical_data(historical_district, historical_commodity)
+
+    # Get districts from CSV file for prediction and historical sections
     gujarat_districts = []
+    available_commodities = []
     try:
         csv_path = os.path.join('farmprj', 'data', 'mandibhav.csv')
         df = pd.read_csv(csv_path)
         gujarat_districts = sorted(df['District'].unique())
+        available_commodities = sorted(df['Commodity'].unique())
     except Exception as e:
-        print(f"Error loading districts: {e}")
-    
+        print(f"Error loading districts and commodities: {e}")
+
     return render(request, 'market_prices.html', {
         'market_data': market_data,
         'states': sorted(INDIAN_STATES),
@@ -752,6 +810,11 @@ def market_prices(request):
         'prediction_district': prediction_district,
         'prediction_commodity': prediction_commodity,
         'price_predictions': price_predictions,
+        'historical_district': historical_district,
+        'historical_commodity': historical_commodity,
+        'historical_data': historical_data,
+        'available_commodities': available_commodities,
+        'active_tab': active_tab,
     })
 
 @staff_member_required
@@ -762,16 +825,16 @@ def admin_analytics(request):
             expiry_date__gt=timezone.now(),
             is_active=True
         ).order_by('-created_at')
-        
+
         # Get total buyers (users who are not farmers)
         total_buyers = UserProfile.objects.filter(is_farmer=False).count()
-        
+
         # Get total products
         total_products = Product.objects.count()
-        
+
         # Get total regions (unique cities)
         total_regions = UserProfile.objects.values('city').distinct().count()
-        
+
         # Products by region analysis
         products_by_region = (
             Product.objects.select_related('farmer__user_profile')
@@ -783,7 +846,7 @@ def admin_analytics(request):
             )
             .order_by('-count')
         )
-        
+
         # Most requested products analysis
         product_requests = (
             ProductRequest.objects.values('product_name')
@@ -793,7 +856,7 @@ def admin_analytics(request):
             )
             .order_by('-request_count')
         )
-        
+
         # Buyers by region analysis
         buyers_by_region = (
             UserProfile.objects.filter(is_farmer=False)
@@ -805,7 +868,7 @@ def admin_analytics(request):
             )
             .order_by('-buyer_count')
         )
-        
+
         context = {
             'news_items': news_items,
             'total_buyers': total_buyers,
@@ -815,7 +878,7 @@ def admin_analytics(request):
             'product_requests': product_requests,
             'buyers_by_region': buyers_by_region,
         }
-        
+
         return render(request, 'admin_analytics.html', context)
     except Exception as e:
         messages.error(request, f'Error loading admin analytics: {str(e)}')
@@ -828,24 +891,24 @@ def add_news(request):
             title = request.POST.get('title')
             content = request.POST.get('content')
             expiry_days = int(request.POST.get('expiry_days', 7))
-            
+
             if not title or not content:
                 messages.error(request, 'Title and content are required!')
                 return redirect('admin_analytics')
-            
+
             expiry_date = timezone.now() + timedelta(days=expiry_days)
-            
+
             news = News.objects.create(
                 title=title,
                 content=content,
                 expiry_date=expiry_date,
                 is_active=True
             )
-            
+
             messages.success(request, f'News item "{title}" added successfully!')
         except Exception as e:
             messages.error(request, f'Error adding news: {str(e)}')
-        
+
     return redirect('admin_analytics')
 
 @staff_member_required

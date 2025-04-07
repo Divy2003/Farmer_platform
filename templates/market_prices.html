@@ -4,13 +4,36 @@
 
 {% block content %}
 <div class="container">
-    <!-- Current Market Prices Section -->
-    <div class="market-prices mt-4">
-        <h2 class="text-center mb-4">Current Market Prices</h2>
-        
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs nav-fill mb-4" id="marketPriceTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab != 'future' and active_tab != 'historical' %}active{% endif %}" id="current-tab" data-bs-toggle="tab" data-bs-target="#current" type="button" role="tab" aria-controls="current" aria-selected="{% if active_tab != 'future' and active_tab != 'historical' %}true{% else %}false{% endif %}">
+                <i class="fas fa-chart-line me-2"></i>Current Prices
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'future' %}active{% endif %}" id="future-tab" data-bs-toggle="tab" data-bs-target="#future" type="button" role="tab" aria-controls="future" aria-selected="{% if active_tab == 'future' %}true{% else %}false{% endif %}">
+                <i class="fas fa-chart-bar me-2"></i>Future Prices
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link {% if active_tab == 'historical' %}active{% endif %}" id="historical-tab" data-bs-toggle="tab" data-bs-target="#historical" type="button" role="tab" aria-controls="historical" aria-selected="{% if active_tab == 'historical' %}true{% else %}false{% endif %}">
+                <i class="fas fa-history me-2"></i>Historical Prices
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="marketPriceTabContent">
+        <!-- Current Market Prices Tab -->
+        <div class="tab-pane fade {% if active_tab != 'future' and active_tab != 'historical' %}show active{% endif %}" id="current" role="tabpanel" aria-labelledby="current-tab">
+            <div class="market-prices mt-4">
+                <h2 class="text-center mb-4">Current Market Prices</h2>
+
         <!-- API Data Search Form -->
         <div class="state-filter mb-4">
             <form method="get" action="{% url 'market_prices' %}" class="d-flex justify-content-center align-items-center gap-2" id="marketPriceForm">
+                <input type="hidden" name="active_tab" value="current">
                 <select name="state" class="form-select" style="max-width: 200px;" id="stateSelect">
                     <option value="">All States</option>
                     {% for state in states %}
@@ -60,7 +83,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="text-muted text-center mt-3">
                 <small>Last updated: {{ market_data.updated_date }}</small>
             </div>
@@ -69,18 +92,19 @@
                 Market price data is currently unavailable. Please check back later.
             </div>
         {% endif %}
-    </div>
+            </div>
+        </div>
 
-    <hr class="my-5">
+        <!-- Future Prices Tab -->
+        <div class="tab-pane fade {% if active_tab == 'future' %}show active{% endif %}" id="future" role="tabpanel" aria-labelledby="future-tab">
+            <div class="price-prediction mb-4 mt-4">
+                <h2 class="text-center mb-4">Price Prediction for Gujarat</h2>
 
-    <!-- Price Prediction Section -->
-    <div class="price-prediction mb-4">
-        <h2 class="text-center mb-4">Price Prediction for Gujarat</h2>
-        
         <!-- Prediction Form -->
         <div class="row justify-content-center mb-4">
             <div class="col-md-8 text-center">
                 <form method="get" action="{% url 'market_prices' %}" class="d-flex justify-content-center gap-2">
+                    <input type="hidden" name="active_tab" value="future">
                     <select name="prediction_district" class="form-select" style="max-width: 200px;">
                         <option value="">Select District</option>
                         {% for district in gujarat_districts %}
@@ -181,6 +205,177 @@
                 </div>
             {% endif %}
         {% endif %}
+            </div>
+        </div>
+
+        <!-- Historical Prices Tab -->
+        <div class="tab-pane fade {% if active_tab == 'historical' %}show active{% endif %}" id="historical" role="tabpanel" aria-labelledby="historical-tab">
+            <div class="historical-prices mt-4">
+                <h2 class="text-center mb-4">Historical Price Data</h2>
+
+                <!-- Historical Data Search Form -->
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-8 text-center">
+                        <form method="get" action="{% url 'market_prices' %}" class="d-flex justify-content-center gap-2">
+                            <input type="hidden" name="active_tab" value="historical">
+                            <select name="historical_district" class="form-select" style="max-width: 200px;">
+                                <option value="">Select District</option>
+                                <option value="Ahmedabad" {% if historical_district == 'Ahmedabad' %}selected{% endif %}>Ahmedabad</option>
+                                <option value="Mehsana" {% if historical_district == 'Mehsana' %}selected{% endif %}>Mehsana</option>
+                                <option value="Bharuch" {% if historical_district == 'Bharuch' %}selected{% endif %}>Bharuch</option>
+                                <option value="Jamnagar" {% if historical_district == 'Jamnagar' %}selected{% endif %}>Jamnagar</option>
+                            </select>
+                            <select name="historical_commodity" class="form-select" style="max-width: 200px;">
+                                <option value="">Select Commodity</option>
+                                {% for commodity in available_commodities %}
+                                    <option value="{{ commodity }}" {% if historical_commodity == commodity %}selected{% endif %}>
+                                        {{ commodity }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary">View History</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if historical_data %}
+                    <!-- Chart Section -->
+                    <div class="row justify-content-center">
+                        <div class="col-md-10">
+                            <h5 class="text-center mb-4">
+                                {% if historical_district and historical_commodity %}
+                                    Price History - {{ historical_commodity }} ({{ historical_district }})
+                                {% elif historical_district %}
+                                    Price History - All Commodities ({{ historical_district }})
+                                {% elif historical_commodity %}
+                                    Price History - {{ historical_commodity }} (All Districts)
+                                {% else %}
+                                    Price History - All Commodities (All Districts)
+                                {% endif %}
+                            </h5>
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="historicalChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="table-responsive mt-4">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Commodity</th>
+                                    <th>District</th>
+                                    <th>Market</th>
+                                    <th>Min Price(Rs./100kg)</th>
+                                    <th>Max Price(Rs./100kg)</th>
+                                    <th>Modal Price(Rs./100kg)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in historical_data.records %}
+                                    <tr>
+                                        <td>{{ record.Arrival_Date }}</td>
+                                        <td>{{ record.Commodity }}</td>
+                                        <td>{{ record.District }}</td>
+                                        <td>{{ record.Market }}</td>
+                                        <td>{{ record.Min_Price }}</td>
+                                        <td>{{ record.Max_Price }}</td>
+                                        <td>{{ record.Modal_Price }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Chart Script -->
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const histCtx = document.getElementById('historicalChart');
+                            const histData = {{ historical_data.chart_data|safe }};
+
+                            new Chart(histCtx, {
+                                type: 'line',
+                                data: {
+                                    labels: histData.map(d => d.date),
+                                    datasets: [
+                                        {
+                                            label: 'Min Price',
+                                            data: histData.map(d => d.min_price),
+                                            borderColor: '#4CAF50',
+                                            borderWidth: 1.5,
+                                            fill: false,
+                                            tension: 0.1
+                                        },
+                                        {
+                                            label: 'Modal Price',
+                                            data: histData.map(d => d.modal_price),
+                                            borderColor: '#1976D2',
+                                            borderWidth: 2,
+                                            fill: false,
+                                            tension: 0.1
+                                        },
+                                        {
+                                            label: 'Max Price',
+                                            data: histData.map(d => d.max_price),
+                                            borderColor: '#F44336',
+                                            borderWidth: 1.5,
+                                            fill: false,
+                                            tension: 0.1
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        x: {
+                                            grid: {
+                                                display: false
+                                            }
+                                        },
+                                        y: {
+                                            grid: {
+                                                color: '#f0f0f0'
+                                            },
+                                            ticks: {
+                                                callback: function(value) {
+                                                    return '₹' + value;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        tooltip: {
+                                            displayColors: true,
+                                            callbacks: {
+                                                title: function(items) {
+                                                    return items[0].label;
+                                                },
+                                                label: function(item) {
+                                                    return item.dataset.label + ': ₹' + item.raw;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    interaction: {
+                                        intersect: false,
+                                        mode: 'index'
+                                    }
+                                }
+                            });
+                        });
+                    </script>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Please select a district and/or commodity to view historical price data.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
