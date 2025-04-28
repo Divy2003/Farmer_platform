@@ -5,29 +5,130 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <!-- Farmer Info -->
-        <div class="col-md-4">
-            <div class="card mb-4">
-                {% if farmer.farm_image %}
-                    <img src="{{ farmer.farm_image.url }}" class="card-img-top" alt="{{ farmer.farm_name }}">
-                {% endif %}
-                <div class="card-body">
-                    <h3 class="card-title">{{ farmer.farm_name }}</h3>
-                    <p class="card-text">{{ farmer.farm_description }}</p>
-                    <p class="card-text">
-                        <i class="fas fa-map-marker-alt text-success"></i> {{ farmer.farm_location }}
-                    </p>
-                    <p class="card-text">
-                        <i class="fas fa-phone text-success"></i> {{ farmer.user_profile.phone }}
-                    </p>
-                    <p class="card-text">
-                        <i class="fas fa-city text-success"></i> {{ farmer.user_profile.city }}
-                    </p>
+        <!-- Farmer Info and Map Location (First Section) -->
+        <div class="col-md-12 mb-4">
+            <div class="row">
+                <!-- Farmer Info -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="product-img-container">
+                            {% if farmer.farm_image %}
+                                <img src="{{ farmer.farm_image.url }}"
+                                     class="card-img-top product-img"
+                                     alt="{{ farmer.farm_name }}"
+                                     data-full-img="{{ farmer.farm_image.url }}">
+                            {% else %}
+                                <div class="d-flex justify-content-center align-items-center h-100 w-100">
+                                    <i class="fas fa-tractor fa-3x text-success"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">{{ farmer.farm_name }}</h3>
+                            <p class="card-text">{{ farmer.farm_description }}</p>
+                            <p class="card-text">
+                                <i class="fas fa-map-marker-alt text-success"></i> {{ farmer.farm_location }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-phone text-success"></i> {{ farmer.user_profile.phone }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-city text-success"></i> {{ farmer.user_profile.city }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Farm Location Map -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h4 class="card-title">Farm Location</h4>
+                            <div id="map" style="height: 400px; width: 100%;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Add this after the farmer info card -->
-            <div class="card mb-4">
+        <!-- Products (Middle Section) -->
+        <div class="col-md-12 mb-4">
+            <h3 class="mb-4">Available Products</h3>
+            <div class="row">
+                {% for product in products %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="product-img-container">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}"
+                                         class="card-img-top product-img"
+                                         alt="{{ product.name }}"
+                                         data-full-img="{{ product.image.url }}">
+                                {% else %}
+                                    <div class="d-flex justify-content-center align-items-center h-100 w-100">
+                                        <i class="fas fa-seedling fa-3x text-success"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text">{{ product.description }}</p>
+                                <p class="card-text">
+                                    <strong>Price:</strong> Rs. {{ product.price }}<br>
+                                    <strong>Quantity:</strong> {{ product.quantity }} kg
+                                </p>
+                                {% if user.is_authenticated and not user.userprofile.is_farmer %}
+                                    <button type="button"
+                                            class="btn btn-success"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#interestModal{{ product.id }}">
+                                        <i class="fas fa-heart"></i> Show Interest
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interest Modal -->
+                    {% if user.is_authenticated and not user.userprofile.is_farmer %}
+                        <div class="modal fade" id="interestModal{{ product.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Show Interest in {{ product.name }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{% url 'show_interest' product.id %}" method="post">
+                                        {% csrf_token %}
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="message" class="form-label">Message to Farmer</label>
+                                                <textarea class="form-control"
+                                                          name="message"
+                                                          rows="3"
+                                                          placeholder="Tell the farmer about your interest in this product"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-success">Send Interest</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="col-12">
+                        <p class="text-center">No products available at the moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Reviews and Ratings (Last Section) -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Rating</h4>
                     <div class="d-flex align-items-center mb-3">
@@ -93,80 +194,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Add this after the farmer info card -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h4 class="card-title">Farm Location</h4>
-                    <div id="map" style="height: 400px; width: 100%;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Products -->
-        <div class="col-md-8">
-            <h3 class="mb-4">Available Products</h3>
-            <div class="row">
-                {% for product in products %}
-                    <div class="col-md-6 mb-4">
-                        <div class="card h-100">
-                            {% if product.image %}
-                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                            {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">{{ product.name }}</h5>
-                                <p class="card-text">{{ product.description }}</p>
-                                <p class="card-text">
-                                    <strong>Price:</strong> Rs. {{ product.price }}<br>
-                                    <strong>Quantity:</strong> {{ product.quantity }} kg
-                                </p>
-                                {% if user.is_authenticated and not user.userprofile.is_farmer %}
-                                    <button type="button" 
-                                            class="btn btn-success" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#interestModal{{ product.id }}">
-                                        <i class="fas fa-heart"></i> Show Interest
-                                    </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Interest Modal -->
-                    {% if user.is_authenticated and not user.userprofile.is_farmer %}
-                        <div class="modal fade" id="interestModal{{ product.id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Show Interest in {{ product.name }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form action="{% url 'show_interest' product.id %}" method="post">
-                                        {% csrf_token %}
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label for="message" class="form-label">Message to Farmer</label>
-                                                <textarea class="form-control" 
-                                                          name="message" 
-                                                          rows="3" 
-                                                          placeholder="Tell the farmer about your interest in this product"></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn btn-success">Send Interest</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                {% empty %}
-                    <div class="col-12">
-                        <p class="text-center">No products available at the moment.</p>
-                    </div>
-                {% endfor %}
-            </div>
         </div>
     </div>
 </div>
@@ -188,25 +215,25 @@
                             <div class="star-rating-input">
                                 <input type="radio" name="rating" value="5" id="star5" {% if user_rating.rating == 5 %}checked{% endif %}>
                                 <label for="star5"><i class="far fa-star"></i></label>
-                                
+
                                 <input type="radio" name="rating" value="4" id="star4" {% if user_rating.rating == 4 %}checked{% endif %}>
                                 <label for="star4"><i class="far fa-star"></i></label>
-                                
+
                                 <input type="radio" name="rating" value="3" id="star3" {% if user_rating.rating == 3 %}checked{% endif %}>
                                 <label for="star3"><i class="far fa-star"></i></label>
-                                
+
                                 <input type="radio" name="rating" value="2" id="star2" {% if user_rating.rating == 2 %}checked{% endif %}>
                                 <label for="star2"><i class="far fa-star"></i></label>
-                                
+
                                 <input type="radio" name="rating" value="1" id="star1" {% if user_rating.rating == 1 %}checked{% endif %}>
                                 <label for="star1"><i class="far fa-star"></i></label>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Review (Optional)</label>
-                            <textarea class="form-control" 
-                                      name="comment" 
-                                      rows="3" 
+                            <textarea class="form-control"
+                                      name="comment"
+                                      rows="3"
                                       placeholder="Share your experience with this farmer">{{ user_rating.comment }}</textarea>
                         </div>
                     </div>
@@ -227,9 +254,9 @@ let map;
 let marker;
 
 function initMap() {
-    const farmLocation = { 
-        lat: {{ farmer.latitude|default:"23.0225" }}, 
-        lng: {{ farmer.longitude|default:"72.5714" }} 
+    const farmLocation = {
+        lat: {{ farmer.latitude|default:"23.0225" }},
+        lng: {{ farmer.longitude|default:"72.5714" }}
     };
 
     map = new google.maps.Map(document.getElementById("map"), {
@@ -261,4 +288,4 @@ function initMap() {
 document.addEventListener('DOMContentLoaded', initMap);
 </script>
 {% endblock %}
-{% endblock %} 
+{% endblock %}

@@ -17,9 +17,19 @@
             {% for farmer in results.farms %}
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
-                        {% if farmer.farm_image %}
-                            <img src="{{ farmer.farm_image.url }}" class="card-img-top" alt="{{ farmer.farm_name }}">
-                        {% endif %}
+                        <div class="product-img-container">
+                            {% if farmer.farm_image %}
+                                <img src="{{ farmer.farm_image.url }}"
+                                     class="card-img-top product-img"
+                                     alt="{{ farmer.farm_name }}"
+                                     data-full-img="{{ farmer.farm_image.url }}"
+                                     onclick="openImageModal('{{ farmer.farm_image.url }}')">
+                            {% else %}
+                                <div class="d-flex justify-content-center align-items-center h-100 w-100">
+                                    <i class="fas fa-tractor fa-3x text-success"></i>
+                                </div>
+                            {% endif %}
+                        </div>
                         <div class="card-body">
                             <h5 class="card-title">
                                 {{ farmer.farm_name }}
@@ -66,9 +76,19 @@
             {% for product in results.products %}
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                        {% endif %}
+                        <div class="product-img-container">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}"
+                                     class="card-img-top product-img"
+                                     alt="{{ product.name }}"
+                                     data-full-img="{{ product.image.url }}"
+                                     onclick="openImageModal('{{ product.image.url }}')">
+                            {% else %}
+                                <div class="d-flex justify-content-center align-items-center h-100 w-100">
+                                    <i class="fas fa-seedling fa-3x text-success"></i>
+                                </div>
+                            {% endif %}
+                        </div>
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
                             <p class="card-text">{{ product.description|truncatewords:20 }}</p>
@@ -98,4 +118,4 @@
         </div>
     {% endif %}
 </div>
-{% endblock %} 
+{% endblock %}

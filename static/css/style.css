@@ -1,4 +1,4 @@
-.hero-section {
+.heroo-section {
     padding: 60px 0;
     background-color: #f8f9fa;
     border-radius: 10px;
@@ -17,6 +17,61 @@
 .card-img-top {
     height: 200px;
     object-fit: cover;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.card-img-top:hover {
+    opacity: 0.9;
+}
+
+.product-img-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8f9fa;
+}
+
+/* Image Modal Styles */
+.img-modal {
+    display: none;
+    position: fixed;
+    z-index: 1060;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.9);
+}
+
+.img-modal-content {
+    margin: auto;
+    display: block;
+    max-width: 80%;
+    max-height: 80%;
+}
+
+.img-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.img-modal-close:hover,
+.img-modal-close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .features-section {
@@ -213,7 +268,7 @@ footer {
     .market-prices {
         padding: 10px;
     }
-    
+
     .market-prices table {
         font-size: 0.8rem;
     }
@@ -246,7 +301,7 @@ footer {
     .state-filter form {
         flex-wrap: wrap;
     }
-    
+
     .state-filter .form-select,
     .state-filter .form-control,
     .commodity-search {
@@ -255,7 +310,7 @@ footer {
         margin-bottom: 10px;
         margin-right: 0;
     }
-    
+
     .state-filter .btn {
         width: 100%;
         margin-bottom: 5px;
@@ -267,12 +322,12 @@ footer {
         flex-direction: column;
         align-items: stretch !important;
     }
-    
+
     .state-filter .form-select {
         max-width: 100% !important;
         margin-bottom: 0.5rem;
     }
-    
+
     .state-filter .btn {
         width: 100%;
         margin-bottom: 0.5rem;
@@ -304,7 +359,7 @@ footer {
     .pagination {
         font-size: 0.9rem;
     }
-    
+
     .pagination .page-link {
         padding: 0.4rem 0.75rem;
     }
@@ -349,8 +404,8 @@ footer {
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .card .btn {
         width: 100%;
     }
-} 
+}

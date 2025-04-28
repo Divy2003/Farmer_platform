@@ -23,7 +23,7 @@
         .goog-te-gadget-simple{
             margin:0rem 1rem;
             border-radius: 7px;
-        }  
+        }
         .navbar-brand{
             text-align: center;
         }
@@ -42,10 +42,10 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <form class="d-flex mx-auto" action="{% url 'search' %}" method="GET">
                     <div class="input-group">
-                        <input type="text" 
-                               class="form-control" 
-                               placeholder="Search farms or products..." 
-                               name="q" 
+                        <input type="text"
+                               class="form-control"
+                               placeholder="Search farms or products..."
+                               name="q"
                                value="{{ request.GET.q }}">
                         <select class="form-select" name="type" style="max-width: 80px;">
                             <option value="all" {% if request.GET.type == 'all' %}selected{% endif %}>All</option>
@@ -57,9 +57,9 @@
                         </button>
                     </div>
                 </form>
-               
+
                 <div id="google_translate_element">
-    
+
                 </div>
 
                 <ul class="navbar-nav ms-auto">
@@ -68,7 +68,7 @@
                             <i class="fas fa-chart-line"></i> Market Prices
                         </a>
                     </li>
-                    
+
                     {% if user.is_authenticated %}
                         {% if user.userprofile.is_farmer %}
                             <li class="nav-item">
@@ -130,7 +130,7 @@
                 </div>
             {% endfor %}
         {% endif %}
-        
+
         {% block content %}
         {% endblock %}
     </div>
@@ -141,7 +141,17 @@
         </div>
     </footer>
 
+    <!-- Image Modal -->
+    <div id="imageModal" class="img-modal">
+        <span class="img-modal-close">&times;</span>
+        <img class="img-modal-content" id="modalImage">
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Include main JavaScript file -->
+    <script src="{% static 'js/main.js' %}"></script>
+
     {% block extra_js %}{% endblock %}
     <script>
     function getNearbyFarms() {

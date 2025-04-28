@@ -51,10 +51,10 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Location</label>
-                                    <input type="text" 
-                                           id="locationInput" 
-                                           class="form-control" 
-                                           name="farm_location" 
+                                    <input type="text"
+                                           id="locationInput"
+                                           class="form-control"
+                                           name="farm_location"
                                            value="{{ farmer.farm_location }}">
                                     <input type="hidden" name="latitude" id="latitude" value="{{ farmer.latitude|default:'' }}">
                                     <input type="hidden" name="longitude" id="longitude" value="{{ farmer.longitude|default:'' }}">
@@ -87,9 +87,19 @@
                                 {% for product in farmer.product_set.all %}
                                     <div class="col-md-4 mb-4">
                                         <div class="card h-100">
-                                            {% if product.image %}
-                                                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
-                                            {% endif %}
+                                            <div class="product-img-container">
+                                                {% if product.image %}
+                                                    <img src="{{ product.image.url }}"
+                                                         class="card-img-top product-img"
+                                                         alt="{{ product.name }}"
+                                                         data-full-img="{{ product.image.url }}"
+                                                         onclick="openImageModal('{{ product.image.url }}')">
+                                                {% else %}
+                                                    <div class="d-flex justify-content-center align-items-center h-100 w-100">
+                                                        <i class="fas fa-seedling fa-3x text-success"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
                                             <div class="card-body">
                                                 <h5 class="card-title">{{ product.name }}</h5>
                                                 <p class="card-text">{{ product.description }}</p>
@@ -98,13 +108,13 @@
                                                     <strong>Quantity:</strong> {{ product.quantity }} kg
                                                 </p>
                                                 <div class="btn-group">
-                                                    <button class="btn btn-outline-success btn-sm" 
-                                                            data-bs-toggle="modal" 
+                                                    <button class="btn btn-outline-success btn-sm"
+                                                            data-bs-toggle="modal"
                                                             data-bs-target="#editProductModal{{ product.id }}">
                                                         Edit
                                                     </button>
-                                                    <button class="btn btn-outline-danger btn-sm" 
-                                                            data-bs-toggle="modal" 
+                                                    <button class="btn btn-outline-danger btn-sm"
+                                                            data-bs-toggle="modal"
                                                             data-bs-target="#deleteProductModal{{ product.id }}">
                                                         Delete
                                                     </button>
@@ -130,9 +140,9 @@
                     <div class="card">
                         <div class="card-body">
                             <h4 class="card-title mb-4">Product Interests</h4>
-                            
+
                             {% regroup interests by product as product_interests %}
-                            
+
                             {% for product_group in product_interests %}
                                 <div class="product-interest-group mb-4">
                                     <div class="d-flex justify-content-between align-items-center">
@@ -140,12 +150,12 @@
                                             {{ product_group.grouper.name }}
                                             <span class="badge bg-success ms-2">{{ product_group.list|length }} interests</span>
                                         </h5>
-                                        <button class="btn btn-sm btn-outline-success" 
+                                        <button class="btn btn-sm btn-outline-success"
                                                 onclick="sendSMSToAllInterested('{{ product_group.grouper.id }}')">
                                             Send SMS to All
                                         </button>
                                     </div>
-                                    
+
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead class="table-light">
@@ -197,7 +207,7 @@
                     <div class="card">
                         <div class="card-body">
                             <h4 class="card-title mb-4">Account Settings</h4>
-                            
+
                             <!-- Change Username -->
                             <div class="mb-4">
                                 <h5>Change Username</h5>
@@ -210,9 +220,9 @@
                                     <button type="submit" class="btn btn-success">Update Username</button>
                                 </form>
                             </div>
-                            
+
                             <hr>
-                            
+
                             <!-- Change Password -->
                             <div class="mt-4">
                                 <h5>Change Password</h5>
@@ -292,8 +302,8 @@
 
                                     <!-- Reply Form -->
                                     {% if not rating.replies.exists %}
-                                        <button class="btn btn-outline-success btn-sm mt-2" 
-                                                data-bs-toggle="collapse" 
+                                        <button class="btn btn-outline-success btn-sm mt-2"
+                                                data-bs-toggle="collapse"
                                                 data-bs-target="#replyForm{{ rating.id }}">
                                             Reply to Review
                                         </button>
@@ -301,9 +311,9 @@
                                             <form action="{% url 'reply_to_rating' rating.id %}" method="post">
                                                 {% csrf_token %}
                                                 <div class="form-group">
-                                                    <textarea class="form-control" 
-                                                              name="reply_text" 
-                                                              rows="3" 
+                                                    <textarea class="form-control"
+                                                              name="reply_text"
+                                                              rows="3"
                                                               placeholder="Write your reply..."></textarea>
                                                 </div>
                                                 <button type="submit" class="btn btn-success btn-sm mt-2">
@@ -375,41 +385,41 @@
                     <h5 class="modal-title">Edit Product</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="post" 
-                      action="{% url 'edit_product' product.id %}" 
+                <form method="post"
+                      action="{% url 'edit_product' product.id %}"
                       enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label">Product Name</label>
-                            <input type="text" 
-                                   class="form-control" 
-                                   name="name" 
-                                   value="{{ product.name }}" 
+                            <input type="text"
+                                   class="form-control"
+                                   name="name"
+                                   value="{{ product.name }}"
                                    required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Description</label>
-                            <textarea class="form-control" 
-                                      name="description" 
-                                      rows="3" 
+                            <textarea class="form-control"
+                                      name="description"
+                                      rows="3"
                                       required>{{ product.description }}</textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Price (Rs.)</label>
-                            <input type="number" 
-                                   class="form-control" 
-                                   name="price" 
-                                   value="{{ product.price }}" 
-                                   step="0.01" 
+                            <input type="number"
+                                   class="form-control"
+                                   name="price"
+                                   value="{{ product.price }}"
+                                   step="0.01"
                                    required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Quantity (kg)</label>
-                            <input type="number" 
-                                   class="form-control" 
-                                   name="quantity" 
-                                   value="{{ product.quantity }}" 
+                            <input type="number"
+                                   class="form-control"
+                                   name="quantity"
+                                   value="{{ product.quantity }}"
                                    required>
                         </div>
                         <div class="mb-3">
@@ -459,9 +469,9 @@ let marker;
 let autocomplete;
 
 function initMap() {
-    const defaultLocation = { 
-        lat: {{ farmer.latitude|default:"23.0225" }}, 
-        lng: {{ farmer.longitude|default:"72.5714" }} 
+    const defaultLocation = {
+        lat: {{ farmer.latitude|default:"23.0225" }},
+        lng: {{ farmer.longitude|default:"72.5714" }}
     };
 
     map = new google.maps.Map(document.getElementById("locationMap"), {
@@ -530,7 +540,7 @@ function sendSMSToAllInterested(productId) {
             const phoneNumbers = data.phoneNumbers.join(','); // Assuming data.phoneNumbers is an array of phone numbers
             const message = encodeURIComponent('Update about your interest in our products.');
             const smsLink = `sms:${phoneNumbers}?body=${message}`;
-            
+
             // Open the SMS app
             window.location.href = smsLink;
         } else {
@@ -540,4 +550,4 @@ function sendSMSToAllInterested(productId) {
 }
 </script>
 {% endblock %}
-{% endblock %} 
+{% endblock %}
