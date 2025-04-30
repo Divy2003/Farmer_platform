@@ -161,7 +161,7 @@
                     const radius = document.getElementById('radiusSelect').value;
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    window.location.href = /home/?lat=${lat}&lng=${lng}&radius=${radius};
+                    window.location.href = `/home/?lat=${lat}&lng=${lng}&radius=${radius}`;
                 },
                 (error) => {
                     alert("Please enable location access to find nearby farms.");
